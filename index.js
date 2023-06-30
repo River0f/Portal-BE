@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 5000;
 
 const router = require("./routers");
 const models = require("./models/models");
+const fileUpload = require("express-fileupload");
 
 const errorHandler = require("./middleware/ErrorHandlingMiddleware");
 
@@ -15,8 +16,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api", router);
+app.use(fileUpload({}));
 app.use(express.static(path.resolve(__dirname, "static")));
+app.use("/api", router);
 
 // Errors middleware
 app.use(errorHandler);

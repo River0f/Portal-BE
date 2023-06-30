@@ -59,9 +59,16 @@ class UserController {
     res.json({ token });
   }
 
-  async check(req, res, next) {
+  async check(req, res) {
     const token = genereteJWT(req.user.id, req.user.email, req.user.role);
     res.json({ token });
+  }
+  async me(req, res) {
+    const user = await User.findOne({
+      where: { id: req.user.id },
+      attributes: { exclude: "password" },
+    });
+    res.json(user);
   }
 }
 

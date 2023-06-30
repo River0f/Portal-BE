@@ -10,6 +10,7 @@ module.exports = function (req, res, next) {
       return res.status(401).json({ message: "User is not authorized" });
     }
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    console.log(decoded);
     req.user = decoded;
     next();
   } catch (e) {
