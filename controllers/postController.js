@@ -1,6 +1,7 @@
 const ApiError = require("../error/ApiError");
 const { Post, User, Comments } = require("../models/models");
 const { Category } = require("../models/models");
+const sequelize = require("../db");
 const uuid = require("uuid");
 const path = require("path");
 
@@ -8,6 +9,7 @@ class PostController {
   async getAll(req, res) {
     let { categoryId, per_page, page } = req.query;
     page = page || 1;
+    console.log(page);
     per_page = per_page || 9;
     let offset = page * per_page - per_page;
     let posts;
@@ -93,10 +95,10 @@ class PostController {
       return next(ApiError.forbiden("Post not found"));
     }
 
-    const comments = await Comments.findAll({
-      where: { postid: id },
-      include: { model: User, as: "user" },
-    });
+    const comments = await sequelize.query(
+      `select comments.id, text, users.id as userid, users.nickname, users.avatar from comments inner join users on comments.userid = users.id where comments.postid = ${id}`
+    );
+
     const postToSend = {
       id: post.id,
       title: post.title,
@@ -106,7 +108,7 @@ class PostController {
       user: post.user,
       date: post.createdAt,
       category: post.category,
-      comments: comments,
+      comments: comments[0],
     };
     res.json(postToSend);
   }
@@ -123,11 +125,10 @@ class PostController {
       );
     }
 
-    const { image } = req.files;
     let fileName = null;
-    if (image) {
+    if (req.files?.image) {
       fileName = uuid.v4() + ".jpeg";
-      image.mv(path.resolve(__dirname, "..", "static", fileName));
+      req.files.image.mv(path.resolve(__dirname, "..", "static", fileName));
     }
     const post = await Post.create({
       title,
